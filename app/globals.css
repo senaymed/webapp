@@ -1,0 +1,363 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 173 80% 30%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 173 80% 30%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 173 80% 40%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 173 80% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Orbital animations for pills */
+@keyframes orbit-1 {
+  0% {
+    transform: rotate(0deg) translateX(120px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(120px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-2 {
+  0% {
+    transform: rotate(45deg) translateX(100px) rotate(-45deg);
+  }
+  100% {
+    transform: rotate(405deg) translateX(100px) rotate(-405deg);
+  }
+}
+
+@keyframes orbit-3 {
+  0% {
+    transform: rotate(90deg) translateX(130px) rotate(-90deg);
+  }
+  100% {
+    transform: rotate(450deg) translateX(130px) rotate(-450deg);
+  }
+}
+
+@keyframes orbit-4 {
+  0% {
+    transform: rotate(135deg) translateX(110px) rotate(-135deg);
+  }
+  100% {
+    transform: rotate(495deg) translateX(110px) rotate(-495deg);
+  }
+}
+
+@keyframes orbit-5 {
+  0% {
+    transform: rotate(180deg) translateX(125px) rotate(-180deg);
+  }
+  100% {
+    transform: rotate(540deg) translateX(125px) rotate(-540deg);
+  }
+}
+
+@keyframes orbit-6 {
+  0% {
+    transform: rotate(225deg) translateX(105px) rotate(-225deg);
+  }
+  100% {
+    transform: rotate(585deg) translateX(105px) rotate(-585deg);
+  }
+}
+
+@keyframes orbit-7 {
+  0% {
+    transform: rotate(270deg) translateX(135px) rotate(-270deg);
+  }
+  100% {
+    transform: rotate(630deg) translateX(135px) rotate(-630deg);
+  }
+}
+
+@keyframes orbit-8 {
+  0% {
+    transform: rotate(315deg) translateX(115px) rotate(-315deg);
+  }
+  100% {
+    transform: rotate(675deg) translateX(115px) rotate(-675deg);
+  }
+}
+
+@keyframes float-1 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes float-2 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(-180deg);
+  }
+}
+
+@keyframes float-3 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-25px) rotate(360deg);
+  }
+}
+
+/* Arrow animations radiating from center */
+@keyframes arrow-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+}
+
+/* Arrow radiating animations */
+.animate-arrow-1 {
+  transform: rotate(-90deg);
+  animation: arrow-pulse 2s ease-in-out infinite;
+}
+
+.animate-arrow-2 {
+  transform: rotate(-45deg);
+  animation: arrow-pulse 2.2s ease-in-out infinite;
+}
+
+.animate-arrow-3 {
+  transform: rotate(0deg);
+  animation: arrow-pulse 1.8s ease-in-out infinite;
+}
+
+.animate-arrow-4 {
+  transform: rotate(45deg);
+  animation: arrow-pulse 2.4s ease-in-out infinite;
+}
+
+.animate-arrow-5 {
+  transform: rotate(90deg);
+  animation: arrow-pulse 2.1s ease-in-out infinite;
+}
+
+.animate-arrow-6 {
+  transform: rotate(135deg);
+  animation: arrow-pulse 1.9s ease-in-out infinite;
+}
+
+.animate-arrow-7 {
+  transform: rotate(180deg);
+  animation: arrow-pulse 2.3s ease-in-out infinite;
+}
+
+.animate-arrow-8 {
+  transform: rotate(225deg);
+  animation: arrow-pulse 2.0s ease-in-out infinite;
+}
+
+/* Animation classes */
+.animate-orbit-1 {
+  animation: orbit-1 8s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-2 {
+  animation: orbit-2 10s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-3 {
+  animation: orbit-3 7s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-4 {
+  animation: orbit-4 9s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-5 {
+  animation: orbit-5 11s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-6 {
+  animation: orbit-6 6s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-7 {
+  animation: orbit-7 12s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-orbit-8 {
+  animation: orbit-8 8.5s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.animate-float-1 {
+  animation: float-1 4s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float-2 5s ease-in-out infinite;
+}
+
+.animate-float-3 {
+  animation: float-3 3s ease-in-out infinite;
+}
+
+.w-13 {
+  width: 3.25rem;
+}
+
+.h-13 {
+  height: 3.25rem;
+}
+
+.w-15 {
+  width: 3.75rem;
+}
+
+.h-15 {
+  height: 3.75rem;
+}
+
+.h-21 {
+  height: 5.25rem;
+}
+
+.h-22 {
+  height: 5.5rem;
+}
+
+.h-23 {
+  height: 5.75rem;
+}
+
+.h-26 {
+  height: 6.5rem;
+}
+
+.h-27 {
+  height: 6.75rem;
+}
+
+.border-3 {
+  border-width: 3px;
+}
+
+/* Modal animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
