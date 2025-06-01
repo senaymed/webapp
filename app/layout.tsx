@@ -6,7 +6,6 @@ export const metadata = {
   title: "SenayMed - Empowering Health Access in Ethiopia",
   description:
     "Search for drugs, explore traditional medicine, find hospitals, and get AI-powered health info — all in your language, online or offline.",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
