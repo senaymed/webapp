@@ -34,13 +34,10 @@ export function Hero() {
           {/* Video as a design element */}
           <div className="relative w-[550px] h-[275px] md:w-[700px] md:h-[350px] rounded-full shadow-xl overflow-hidden border-6 border-white">
             <div className="absolute inset-0 w-full h-full rounded-full" style={{ background: '#029A68', zIndex: 0 }} />
-            <video
-              className="w-full h-full object-cover relative z-10"
-              src="/120.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
+            <img
+              src="/120.gif"
+              alt="Animated pills"
+              className="w-full h-full object-cover relative z-10 rounded-full"
             />
           </div>
         </div>
