@@ -36,7 +36,7 @@ export function Hero() {
             <div className="absolute inset-0 w-full h-full rounded-full" style={{ background: '#029A68', zIndex: 0 }} />
             <video
               className="w-full h-full object-cover relative z-10 rounded-full"
-              src="/12000.mp4"
+              src="/medicalpil.mp4"
               autoPlay
               loop
               muted
