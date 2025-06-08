@@ -1,0 +1,31 @@
+export declare class User {
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    resetPasswordToken: string;
+    resetPasswordExpires: Date;
+    isEmailVerified: boolean;
+    emailVerificationToken: string;
+    emailVerificationTokenExpires: Date;
+    passwordResetToken: string;
+    passwordResetTokenExpires: Date;
+    phone: string;
+    age: number;
+    gender: string;
+    dateOfBirth: Date;
+    profilePicture: string;
+    address: string;
+    emergencyContactName: string;
+    emergencyContactPhone: string;
+    bloodType: string;
+    allergies: string;
+    chronicConditions: string;
+    currentMedications: string;
+    medicalHistory: string;
+    preferredLanguage: string;
+    occupation: string;
+    onboardingComplete: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}

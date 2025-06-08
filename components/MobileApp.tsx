@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function MobileApp() {
   return (
-    <section className="bg-gradient-to-r from-teal-500 to-teal-400 py-16 md:py-24 text-white">
+    <section id="mobile-app" className="bg-gradient-to-r from-teal-500 to-teal-400 py-16 md:py-24 text-white">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
@@ -13,14 +13,14 @@ export function MobileApp() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Image
-                src="/placeholder.svg?height=53&width=160"
+                src="https://www.drugs.com/img/v-20240725/apps/apple-store.png"
                 alt="Download on the App Store"
                 width={160}
                 height={53}
                 className="h-12 w-auto"
               />
               <Image
-                src="/placeholder.svg?height=53&width=180"
+                src="https://www.drugs.com/img/v-20240725/apps/google-play.png"
                 alt="Get it on Google Play"
                 width={180}
                 height={53}
@@ -33,7 +33,7 @@ export function MobileApp() {
               <div className="absolute inset-0 bg-black rounded-[40px] shadow-xl"></div>
               <div className="absolute inset-2 bg-white rounded-[36px] overflow-hidden">
                 <Image
-                  src="/placeholder.svg?height=560&width=280"
+                  src="https://cdn.gamma.app/gzk3vhgy5jmazs3/generated-images/4r5JHsDDCU8uJbCuQQPH6.jpg"
                   alt="SenayMed Mobile App Screenshot"
                   fill
                   className="object-cover"

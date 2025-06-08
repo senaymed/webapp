@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Pill, AlertCircle, Activity, AlertTriangle, FileText, BookOpen, BarChart3, Heart, CreditCard, Bell, DollarSign, Mic, Languages, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,12 +117,85 @@ export function DrugSearch() {
   const itemsPerView = 4;
   const maxIndex = Math.max(0, medicalTools.length - itemsPerView);
 
+  // Drug browsing state
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [drugs, setDrugs] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [limit] = useState(20);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDrug, setSelectedDrug] = useState<string | null>(null);
+  const [drugDetail, setDrugDetail] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const API_URL = "http://localhost:3000";
+
   const handlePrevious = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleNext = () => {
     setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
+
+  const fetchDrugs = async (letter: string, pageNum: number = 1) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/drugs?startsWith=${letter}&page=${pageNum}&limit=${limit}`);
+      const data = await res.json();
+      console.log('API response:', data);
+      if (!res.ok) {
+        setError(data.message || "Failed to fetch drugs");
+        setDrugs([]);
+        setTotal(0);
+      } else {
+        setDrugs(data.drugs);
+        setTotal(data.total);
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+      setDrugs([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLetterClick = (letter: string) => {
+    setSelectedLetter(letter);
+    setPage(1);
+    fetchDrugs(letter, 1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (selectedLetter) {
+      setPage(newPage);
+      fetchDrugs(selectedLetter, newPage);
+    }
+  };
+
+  const handleDrugClick = async (drug: string) => {
+    setSelectedDrug(drug);
+    setShowModal(true);
+    setDrugDetail(null);
+    setDetailError(null);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/drugs/detail?name=${encodeURIComponent(drug)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setDetailError(data.message || "Failed to fetch drug details");
+      } else {
+        setDrugDetail(data);
+      }
+    } catch (err) {
+      setDetailError("Network error. Please try again.");
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   return (
@@ -210,43 +283,88 @@ export function DrugSearch() {
               <TabsContent value="browse-drugs" className="mt-4">
                 <div className="grid grid-cols-8 gap-2">
                   {["A", "B", "C", "D", "E", "F", "G", "H"].map((letter) => (
-                    <button
+                    <Link
                       key={letter}
-                      className="h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200"
+                      href={`/drugs/${letter}`}
+                      className={`h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200 ${selectedLetter === letter ? "bg-teal-100 border-teal-400" : ""}`}
                     >
                       {letter}
-                    </button>
+                    </Link>
                   ))}
                 </div>
                 <div className="grid grid-cols-8 gap-2 mt-2">
                   {["I", "J", "K", "L", "M", "N", "O", "P"].map((letter) => (
-                    <button
+                    <Link
                       key={letter}
-                      className="h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200"
+                      href={`/drugs/${letter}`}
+                      className={`h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200 ${selectedLetter === letter ? "bg-teal-100 border-teal-400" : ""}`}
                     >
                       {letter}
-                    </button>
+                    </Link>
                   ))}
                 </div>
                 <div className="grid grid-cols-8 gap-2 mt-2">
                   {["Q", "R", "S", "T", "U", "V", "W", "X"].map((letter) => (
-                    <button
+                    <Link
                       key={letter}
-                      className="h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200"
+                      href={`/drugs/${letter}`}
+                      className={`h-10 w-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200 ${selectedLetter === letter ? "bg-teal-100 border-teal-400" : ""}`}
                     >
                       {letter}
-                    </button>
+                    </Link>
                   ))}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   {["Y", "Z", "0-9"].map((letter) => (
-                    <button
+                    <Link
                       key={letter}
-                      className={`h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200 ${letter === "0-9" ? "col-span-1" : ""}`}
+                      href={`/drugs/${letter}`}
+                      className={`h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-teal-50 hover:border-teal-200 ${selectedLetter === letter ? "bg-teal-100 border-teal-400" : ""}`}
                     >
                       {letter}
-                    </button>
+                    </Link>
                   ))}
+                </div>
+                {/* Drug results */}
+                <div className="mt-6 min-h-[60px]">
+                  {loading && <div className="text-center text-gray-500">Loading drugs...</div>}
+                  {error && <div className="text-center text-red-500">{error}</div>}
+                  {selectedLetter && !loading && !error && (drugs?.length ?? 0) === 0 && (
+                    <div className="text-center text-gray-500">No drugs found for {selectedLetter}.</div>
+                  )}
+                  {(drugs?.length ?? 0) > 0 && (
+                    <>
+                      <ul className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {drugs.map((drug) => (
+                          <li
+                            key={drug}
+                            className="bg-white border rounded p-2 text-center text-gray-800 shadow-sm cursor-pointer hover:bg-teal-50"
+                            onClick={() => handleDrugClick(drug)}
+                          >
+                            {drug}
+                          </li>
+                        ))}
+                      </ul>
+                      {/* Pagination Controls */}
+                      <div className="flex justify-center items-center gap-2 mt-4">
+                        <button
+                          className="px-3 py-1 rounded border bg-gray-100 disabled:opacity-50"
+                          onClick={() => handlePageChange(page - 1)}
+                          disabled={page === 1}
+                        >
+                          Previous
+                        </button>
+                        <span>Page {page} of {Math.ceil(total / limit)}</span>
+                        <button
+                          className="px-3 py-1 rounded border bg-gray-100 disabled:opacity-50"
+                          onClick={() => handlePageChange(page + 1)}
+                          disabled={page >= Math.ceil(total / limit)}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </TabsContent>
               <TabsContent value="conditions" className="mt-4">
@@ -277,6 +395,41 @@ export function DrugSearch() {
           </div>
         </div>
       </div>
+
+      {/* Drug Detail Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setShowModal(false)}
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-2">{selectedDrug}</h2>
+            {detailLoading && <div>Loading...</div>}
+            {detailError && <div className="text-red-500">{detailError}</div>}
+            {drugDetail && (
+              <div className="text-left text-sm space-y-2">
+                {drugDetail.description && <div><strong>Description:</strong> {drugDetail.description}</div>}
+                {drugDetail.indications_and_usage && <div><strong>Indications & Usage:</strong> {drugDetail.indications_and_usage}</div>}
+                {drugDetail.purpose && <div><strong>Purpose:</strong> {drugDetail.purpose}</div>}
+                {drugDetail.warnings && <div><strong>Warnings:</strong> {drugDetail.warnings}</div>}
+                {drugDetail.dosage_and_administration && <div><strong>Dosage & Administration:</strong> {drugDetail.dosage_and_administration}</div>}
+                {drugDetail.adverse_reactions && <div><strong>Adverse Reactions:</strong> {drugDetail.adverse_reactions}</div>}
+                {drugDetail.contraindications && <div><strong>Contraindications:</strong> {drugDetail.contraindications}</div>}
+                {drugDetail.active_ingredient && <div><strong>Active Ingredient:</strong> {drugDetail.active_ingredient}</div>}
+                {drugDetail.inactive_ingredient && <div><strong>Inactive Ingredient:</strong> {drugDetail.inactive_ingredient}</div>}
+                {drugDetail.precautions && <div><strong>Precautions:</strong> {drugDetail.precautions}</div>}
+                {drugDetail.drug_interactions && <div><strong>Drug Interactions:</strong> {drugDetail.drug_interactions}</div>}
+                {drugDetail.overdosage && <div><strong>Overdosage:</strong> {drugDetail.overdosage}</div>}
+                {drugDetail.how_supplied && <div><strong>How Supplied:</strong> {drugDetail.how_supplied}</div>}
+                {drugDetail.storage_and_handling && <div><strong>Storage & Handling:</strong> {drugDetail.storage_and_handling}</div>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 } 

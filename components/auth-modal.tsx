@@ -2,48 +2,174 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Mail, Lock, User, ArrowRight, Check, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
+  initialTab?: "login" | "register"
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, initialTab = "login" }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("login")
+  const [activeTab, setActiveTab] = useState<"login" | "register">(initialTab)
+  const [error, setError] = useState<string | null>(null)
+  const [resendMessage, setResendMessage] = useState<string | null>(null)
+  const [showForgot, setShowForgot] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null)
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const API_URL = "http://localhost:3000";
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<number>(0);
+  const [checkingName, setCheckingName] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    setIsLoading(false)
-    // Here you would handle actual login logic
-    console.log("Login with:", { email, password })
-  }
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Login failed");
+      } else {
+        localStorage.setItem("token", data.access_token);
+        setError(null);
+        onClose();
+        router.push("/dashboard");
+        // Optionally, trigger a user state update here
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+      } else {
+        setError(data.message || "Registration successful. Please check your email to verify your account.");
+        setActiveTab("login");
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+  const handleResendVerification = async () => {
+    setResendMessage(null);
+    try {
+      const res = await fetch(`${API_URL}/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      setResendMessage(data.message || "If your email is registered and not verified, you will receive a verification email.");
+    } catch (err) {
+      setResendMessage("Network error. Please try again.");
+    }
+  };
 
-    setIsLoading(false)
-    // Here you would handle actual registration logic
-    console.log("Register with:", { name, email, password })
-  }
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage(null);
+    try {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setForgotMessage(data.message || "Failed to send reset email");
+      } else {
+        setForgotMessage("If your email is registered, you will receive a reset link.");
+      }
+    } catch (err) {
+      setForgotMessage("Network error. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Real-time full name validation
+  useEffect(() => {
+    if (activeTab === "register" && name) {
+      const isFullName = name.trim().split(" ").length >= 2;
+      setNameError(isFullName ? null : "Please enter your full name (first and last)." );
+      if (isFullName) {
+        setCheckingName(true);
+        fetch(`${API_URL}/auth/check-name?name=${encodeURIComponent(name)}`)
+          .then(res => res.json())
+          .then(data => setNameError(data.taken ? "Name is already taken." : null))
+          .catch(() => setNameError(null))
+          .finally(() => setCheckingName(false));
+      }
+    } else {
+      setNameError(null);
+    }
+  }, [name, activeTab]);
+
+  // Real-time email validation
+  useEffect(() => {
+    if (activeTab === "register" && email) {
+      setCheckingEmail(true);
+      fetch(`${API_URL}/auth/check-email?email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => setEmailError(data.taken ? "Email is already registered." : null))
+        .catch(() => setEmailError(null))
+        .finally(() => setCheckingEmail(false));
+    } else {
+      setEmailError(null);
+    }
+  }, [email, activeTab]);
+
+  // Password strength meter
+  useEffect(() => {
+    if (activeTab === "register" && password) {
+      let score = 0;
+      if (password.length >= 8) score++;
+      if (/[A-Z]/.test(password)) score++;
+      if (/[0-9]/.test(password)) score++;
+      if (/[^A-Za-z0-9]/.test(password)) score++;
+      setPasswordStrength(score);
+    } else {
+      setPasswordStrength(0);
+    }
+  }, [password, activeTab]);
 
   if (!isOpen) return null
 
@@ -69,7 +195,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <p className="text-gray-600 mt-1">Your healthcare companion in Ethiopia</p>
         </div>
 
-        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="login" value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")} className="w-full">
           <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="login" className="text-base">
               Login
@@ -81,6 +207,27 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           <TabsContent value="login" className="mt-0">
             <form onSubmit={handleLogin} className="space-y-4">
+              {error && activeTab === "login" && (
+                <>
+                  <div className="text-red-500 text-sm text-center">{error}</div>
+                  {error === "Please verify your email before logging in" && (
+                    <div className="text-center mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleResendVerification}
+                        disabled={isLoading}
+                      >
+                        Resend verification email
+                      </Button>
+                      {resendMessage && (
+                        <div className="text-teal-600 text-xs mt-2">{resendMessage}</div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
@@ -104,9 +251,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Password
                   </label>
-                  <a href="#" className="text-sm text-teal-600 hover:text-teal-500">
-                    Forgot password?
-                  </a>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="text-sm text-teal-600 hover:underline focus:outline-none"
+                      onClick={() => setShowForgot(true)}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -148,47 +301,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
               </Button>
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-11">
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                      <path
-                        fill="#4285F4"
-                        d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
-                      />
-                    </g>
-                  </svg>
-                  Google
-                </Button>
-                <Button variant="outline" className="h-11">
-                  <svg className="h-5 w-5 mr-2 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9.19795 21.5H13.198V13.4901H16.8021L17.198 9.50977H13.198V7.5C13.198 6.94772 13.6457 6.5 14.198 6.5H17.198V2.5H14.198C11.4365 2.5 9.19795 4.73858 9.19795 7.5V9.50977H7.19795L6.80206 13.4901H9.19795V21.5Z"></path>
-                  </svg>
-                  Facebook
-                </Button>
-              </div>
-
               <p className="text-center text-sm text-gray-600 mt-6">
                 Don't have an account?{" "}
                 <button
@@ -204,6 +316,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           <TabsContent value="register" className="mt-0">
             <form onSubmit={handleRegister} className="space-y-4">
+              {error && activeTab === "register" && (
+                <div className="text-red-500 text-sm text-center">{error}</div>
+              )}
               <div className="space-y-2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Full Name
@@ -220,6 +335,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                   />
                 </div>
+                {nameError && <div className="text-xs text-red-500 mt-1">{nameError}</div>}
+                {checkingName && <div className="text-xs text-gray-400 mt-1">Checking name...</div>}
               </div>
 
               <div className="space-y-2">
@@ -238,6 +355,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                   />
                 </div>
+                {emailError && <div className="text-xs text-red-500 mt-1">{emailError}</div>}
+                {checkingEmail && <div className="text-xs text-gray-400 mt-1">Checking email...</div>}
               </div>
 
               <div className="space-y-2">
@@ -263,6 +382,26 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`h-2 w-24 rounded bg-gray-200 overflow-hidden relative`}>
+                    <div
+                      className={`h-2 rounded transition-all duration-300 ${
+                        passwordStrength === 0 ? "bg-gray-200 w-0" :
+                        passwordStrength === 1 ? "bg-red-400 w-1/4" :
+                        passwordStrength === 2 ? "bg-yellow-400 w-2/4" :
+                        passwordStrength === 3 ? "bg-blue-400 w-3/4" :
+                        "bg-green-500 w-full"
+                      }`}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {passwordStrength === 0 ? "" :
+                      passwordStrength === 1 ? "Weak" :
+                      passwordStrength === 2 ? "Fair" :
+                      passwordStrength === 3 ? "Good" :
+                      "Strong"}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
               </div>
@@ -304,47 +443,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 )}
               </Button>
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or register with</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-11">
-                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                      <path
-                        fill="#4285F4"
-                        d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"
-                      />
-                    </g>
-                  </svg>
-                  Google
-                </Button>
-                <Button variant="outline" className="h-11">
-                  <svg className="h-5 w-5 mr-2 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9.19795 21.5H13.198V13.4901H16.8021L17.198 9.50977H13.198V7.5C13.198 6.94772 13.6457 6.5 14.198 6.5H17.198V2.5H14.198C11.4365 2.5 9.19795 4.73858 9.19795 7.5V9.50977H7.19795L6.80206 13.4901H9.19795V21.5Z"></path>
-                  </svg>
-                  Facebook
-                </Button>
-              </div>
-
               <p className="text-center text-sm text-gray-600 mt-6">
                 Already have an account?{" "}
                 <button
@@ -358,6 +456,38 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </form>
           </TabsContent>
         </Tabs>
+
+        {showForgot && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6 md:p-8 animate-scale-in">
+              <button
+                onClick={() => setShowForgot(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h2 className="text-xl font-bold mb-4 text-center">Forgot Password</h2>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">Email</label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-11" disabled={forgotLoading}>
+                  {forgotLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+                {forgotMessage && <div className="text-center text-sm text-teal-600 mt-2">{forgotMessage}</div>}
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

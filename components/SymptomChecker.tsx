@@ -172,7 +172,7 @@ export function SymptomChecker() {
   };
 
   return (
-    <section className="bg-gray-50 py-16 md:py-24">
+    <section id="symptom-checker" className="bg-gray-50 py-16 md:py-24">
       <div className="container px-4 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Symptom Checker</h2>

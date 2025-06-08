@@ -1,7 +1,13 @@
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Footer() {
+  const [year, setYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container px-4 md:px-6">
@@ -9,11 +15,11 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-6">
               <Image
-                src="/placeholder.svg?height=40&width=150"
+                src="/senaymed.png"
                 alt="SenayMed Logo"
-                width={150}
-                height={40}
-                className="h-10 w-auto"
+                width={375}
+                height={100}
+                className="h-24 w-auto"
               />
             </div>
             <p className="text-gray-400 mb-4">
@@ -200,7 +206,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} SenayMed. All rights reserved.</p>
+          <p>© {year ?? ""} SenayMed. All rights reserved.</p>
         </div>
       </div>
     </footer>
